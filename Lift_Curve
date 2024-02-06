@@ -1,0 +1,55 @@
+#This code computes the Lift Coefficient for a Steady, Unaccelerated, Levelled Flight ("SLUF")
+
+# Equations
+  # At SLUF, L = W
+  # L = CL * q * S
+  # q = 0.5 * rho * V^2
+
+W = 1000    # pounds, weight of aircraft
+h = 600     # feet, height of aircraft
+knot_to_ftpersec = 1.68781  # 1 knot = 1.68781 feet per sec
+
+#custom function to get P, T and rho at given altitude:
+g0 = 32.174         # feet per square seconds, std grav acceleration
+R = 1716.5          # feet square per second square per deg Rankine, specific gas constant of air
+F_to_R = 459.67     # to convert deg Fahrenheit to deg Rankine, R = F + 459.67
+a = -0.00357        # deg Rankine per feet, environmental lapse rate
+P_sl = 2116.22      # pounds per square feet, pressure at sea level
+rho_sl = 2.3769e-3  # slugs per cubic feet, density at sea level
+T_sl = 59           # deg Fahrenheit, Temperature at sea level
+T_trop = -69.7      # deg Fahrenheit, Temperature at 36000 feet
+P_trop = 474.59       # pounds per square feet, pressure at 36000 feet
+rho_trop = 7.0864e-4  # slugs per cubic feet, density at 36000 feet
+
+def get_PTrho_given_altitude(h,g0,R,P_sl,rho_sl,F_to_R,a,T_sl,T_trop,P_trop,rho_trop):
+    if h < 36000 :
+        T1 = T_sl + F_to_R                     # CHECKED deg Rankine, Temperature at sea level
+        T = T1 + a*h                         # deg Rankine, Temperature at h
+        P = P_sl * ( T / T1 )**(-1*g0/(R*a))              # pounds per square feet, Pressure at h
+        rho = rho_sl * ( T / T1 )**(-1*(g0/(R*a) + 1))    # slug per cubic fe   et, Density at h
+    
+    elif h >= 36000 and h < 82000 :          # isotherml region of stratosphere
+        h0 = 36000                           # feet, altitude at tropopause
+        T = T_trop + F_to_R                   # deg Rankine, Temperature at 36000 feet
+        P = P_trop * m.e**(-1*g0*(h - h0)/(R*T))        # pounds per square feet, Pressure at h
+        rho = rho_trop * m.e**(-1*g0*(h - h0)/(R*T))    # slug per feet cube, Density at h
+    
+    return [P, T - F_to_R, rho]     #return Pressure in lb/ft2, Temperature in degF and Density in slugs/ft3
+
+#density of dry at 600 feet
+rho_1b = get_PTrho_given_altitude(h,g0,R,P_sl,rho_sl,F_to_R,a,T_sl,T_trop,P_trop,rho_trop)[2]
+
+#dynamic pressure in lb.ft-2 at 600 feet, 44.4 knots
+V = 44.4    # knots, wind speed
+q_1 = 0.5*rho_1b*(V*knot_to_ftpersec)**2
+L = W
+CL_1 = L/(q_1*S)
+print("At 44.4 knots, Lift Coefficient is :", CL_1)
+print("From Lift Curve given, angle of attack 'alpha' is around 2 degrees")
+
+#dynamic pressure in lb.ft-2 at 600 feet, 30 knots
+V = 30     # knots, wind speed
+q_2 = 0.5*rho_1b*(V*knot_to_ftpersec)**2
+CL_2 = L/(q_2*S)
+print("At 30 knots, Lift Coefficient is :", CL_2)
+print("From Lift Curve given, angle of attack 'alpha' is around 15 degrees")
