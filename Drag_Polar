@@ -1,0 +1,30 @@
+#This code plots the drag polar given parasite drag coefficient, aspect ratio and planform area
+
+import math as m
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+
+# given parameters and constants
+CD0 = 0.0197    # coefficient of parasite drag
+e0 =  0.84      #Oswald's efficiency factor
+pi = m.pi
+AR = 6.96      # Aspect Ratio
+S = 178.5       # feet square, planform area
+
+#custom functions to get CDi and CD
+def get_CDi_from_CL (CL):
+    return CL**2/(pi*e0*AR)
+def get_CD_from_CD0_CDi (CD0, CDi):
+    return CD0 + CDi
+
+#plot the drag polar
+CL_range = np.arange(1.1, 1.6, 0.01)
+CDi_range = [get_CDi_from_CL (CL) for CL in CL_range]
+CD_range = [get_CD_from_CD0_CDi (CD0, CDi) for CDi in CDi_range]
+
+plt.plot(CL_range, CD_range, marker = ".")
+plt.xlabel("Lift Coefficient 'CL'")
+plt.ylabel("Total Drag Coefficient 'CD'")
+plt.title("Drag Polar for Piper J-3 Cub", fontsize = 12)
+plt.show()
